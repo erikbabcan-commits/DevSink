@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevSink // LAN Developer Cache & Telemetry Appliance</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .tagline {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .node-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.4rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      color: var(--accent-green);
+    }
+
+    .pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    .card-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: #1f2937;
+      border-radius: 3px;
+      margin-top: 0.8rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* Services Grid */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .service-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: border-color 0.2s;
+    }
+
+    .service-card:hover {
+      border-color: #374151;
+    }
+
+    .service-info h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .service-type {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .service-endpoint {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-cyan);
+      margin-top: 0.3rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+    }
+
+    .status-online {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-offline {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Client Setup Instructions */
+    .setup-box {
+      background: #0d1322;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .code-block {
+      background: #050811;
+      border: 1px solid #172033;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #38bdf8;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #334155;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    footer a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-group">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <h1>DevSink</h1>
+          <div class="tagline">Zero-Config LAN Developer Appliance & Cache Node</div>
+        </div>
+      </div>
+      <div class="node-badge">
+        <div class="pulse"></div>
+        <span id="mdnsHost">vorkei.local</span>
+      </div>
+    </header>
+
+    <!-- Quick 1-Line Client Setup -->
+    <div style="background: linear-gradient(135deg, rgba(6,182,212,0.1), rgba(59,130,246,0.1)); border: 1px solid rgba(6,182,212,0.3); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem;">
+      <div>
+        <div style="font-weight: 700; font-size: 0.95rem; color: var(--accent-cyan);">🚀 1-Line Mac/Linux Client Switcher:</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Install `devsink` CLI on your MacBook to switch on/off with 1 command.</div>
+      </div>
+      <div class="code-block" style="padding: 0.5rem 0.8rem; padding-right: 5rem; margin: 0;">
+        <code>curl -fsSL https://raw.githubusercontent.com/erikbabcan-commits/DevSink/main/client.sh | bash</code>
+        <button class="copy-btn" onclick="copySnippet('curl -fsSL https://raw.githubusercontent.com/erikbabcan-commits/DevSink/main/client.sh | bash')">Copy</button>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+      <div class="card">
+        <div class="card-title">SSD Space Saved on Laptop</div>
+        <div class="card-value" id="cacheTotal" style="color: var(--accent-cyan);">--</div>
+        <div class="card-meta" id="cacheBreakdown">Cached packages & images</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Dedicated SSD Free Space</div>
+        <div class="card-value" id="diskFree" style="color: var(--accent-green);">--</div>
+        <div class="card-meta" id="diskUsage">Used: -- / --</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="diskBar"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Node LAN Host & IP</div>
+        <div class="card-value" id="nodeHost" style="font-size: 1.3rem;">vorkei.local</div>
+        <div class="card-meta" id="nodeIp">Port 3333 // Online</div>
+      </div>
+    </div>
+
+    <!-- Services -->
+    <div class="section-title">
+      <span>Active LAN Microservices</span>
+    </div>
+    <div class="services-grid" id="servicesList">
+      <!-- Populated via JS -->
+      <div style="color: var(--text-muted);">Loading active services...</div>
+    </div>
+
+    <!-- Client Config Snippets -->
+    <div class="setup-box">
+      <div class="section-title" style="margin-bottom: 0.8rem;">
+        <span>Manual Quick-Connect Snippets</span>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('cli')">DevSink CLI</button>
+        <button class="tab-btn" onclick="switchTab('pnpm')">NPM / PNPM</button>
+        <button class="tab-btn" onclick="switchTab('pip')">PIP / UV</button>
+        <button class="tab-btn" onclick="switchTab('docker')">Docker</button>
+        <button class="tab-btn" onclick="switchTab('atuin')">Atuin Shell</button>
+      </div>
+
+      <div id="tab-cli" class="tab-content active">
+        <div class="code-block">
+<pre># Connect your Mac/Linux laptop to DevSink:
+devsink on
+
+# Check real-time latency to all 5 services:
+devsink status
+
+# Disconnect when traveling / leaving home Wi-Fi:
+devsink off</pre>
+          <button class="copy-btn" onclick="copySnippet('devsink on')">Copy devsink on</button>
+        </div>
+      </div>
+
+      <div id="tab-pnpm" class="tab-content">
+        <div class="code-block">
+<pre>npm config set registry http://vorkei.local:4873/
+pnpm config set registry http://vorkei.local:4873/</pre>
+          <button class="copy-btn" onclick="copySnippet('npm config set registry http://vorkei.local:4873/\npnpm config set registry http://vorkei.local:4873/')">Copy</button>
+        </div>
+      </div>
+
+      <div id="tab-pip" class="tab-content">
+        <div class="code-block">
+<pre># ~/.config/pip/pip.conf
+[global]
+index-url = http://vorkei.local:5050/simple/
+trusted-host = vorkei.local</pre>
+          <button class="copy-btn" onclick="copySnippet('[global]\nindex-url = http://vorkei.local:5050/simple/\ntrusted-host = vorkei.local')">Copy</button>
+        </div>
+      </div>
+
+      <div id="tab-docker" class="tab-content">
+        <div class="code-block">
+<pre># Add to /etc/docker/daemon.json or Docker Desktop Engine settings:
+{
+  "registry-mirrors": ["http://vorkei.local:5000"],
+  "insecure-registries": ["vorkei.local:5000"]
+}</pre>
+          <button class="copy-btn" onclick="copySnippet('{\n  &quot;registry-mirrors&quot;: [&quot;http://vorkei.local:5000&quot;],\n  &quot;insecure-registries&quot;: [&quot;vorkei.local:5000&quot;]\n}')">Copy</button>
+        </div>
+      </div>
+
+      <div id="tab-atuin" class="tab-content">
+        <div class="code-block">
+<pre>atuin config set sync_address http://vorkei.local:8888
+atuin sync</pre>
+          <button class="copy-btn" onclick="copySnippet('atuin config set sync_address http://vorkei.local:8888\natuin sync')">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>DevSink Core v1.0.0 • Open Source Dev Appliance</div>
+      <div>
+        <a href="https://github.com/erikbabcan-commits/DevSink" target="_blank">GitHub Repository</a> • 
+        <a href="http://vorkei.local:9428/select/vmui/" target="_blank">VictoriaLogs UI</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Host & Disk
+        document.getElementById('mdnsHost').textContent = data.mdns_host;
+        document.getElementById('nodeHost').textContent = data.mdns_host;
+        document.getElementById('cacheTotal').textContent = data.cache.total_str;
+        document.getElementById('cacheBreakdown').textContent = 
+          `NPM: ${data.cache.npm_str} | PyPI: ${data.cache.pypi_str} | Docker: ${data.cache.docker_str}`;
+
+        document.getElementById('diskFree').textContent = data.disk.free_str;
+        document.getElementById('diskUsage').textContent = 
+          `Used: ${data.disk.used_str} of ${data.disk.total_str} (${data.disk.percent_used}%)`;
+        document.getElementById('diskBar').style.width = data.disk.percent_used + '%';
+
+        // Services
+        const list = document.getElementById('servicesList');
+        list.innerHTML = '';
+        data.services.forEach(s => {
+          const card = document.createElement('div');
+          card.className = 'service-card';
+          const isOnline = s.active;
+          card.innerHTML = `
+            <div class="service-info">
+              <h3>${s.name}</h3>
+              <div class="service-type">${s.type}</div>
+              <div class="service-endpoint">http://${data.mdns_host}:${s.port}</div>
+            </div>
+            <div>
+              <span class="status-badge ${isOnline ? 'status-online' : 'status-offline'}">
+                ${isOnline ? `● ACTIVE (${s.latency_ms}ms)` : '○ OFFLINE'}
+              </span>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+      }
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    function copySnippet(text) {
+      navigator.clipboard.writeText(text);
+      alert('Copied to clipboard!');
+    }
+
+    fetchStats();
+    setInterval(fetchStats, 3000);
+  </script>
+</body>
+</html>

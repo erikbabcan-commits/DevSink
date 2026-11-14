@@ -1,0 +1,36 @@
+# DevSink Verdaccio NPM / PNPM Cache Configuration
+storage: ./storage
+plugins: ./plugins
+
+web:
+  title: "DevSink Package Registry"
+  enable: true
+
+auth:
+  htpasswd:
+    file: ./htpasswd
+    max_users: 10
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    cache: true
+
+packages:
+  "@*/*":
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+  "**":
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+server:
+  keepAliveTimeout: 60
+
+listen:
+  - 0.0.0.0:4873

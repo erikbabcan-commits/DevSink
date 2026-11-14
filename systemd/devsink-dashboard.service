@@ -1,0 +1,14 @@
+[Unit]
+Description=DevSink Mission Control Web Dashboard (:3333)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/vorkei/projects/devsink/dashboard/server.py
+WorkingDirectory=/home/vorkei/projects/devsink/dashboard
+Restart=always
+RestartSec=3s
+Environment=DEVSINK_PORT=3333
+
+[Install]
+WantedBy=default.target

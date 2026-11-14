@@ -1,0 +1,8 @@
+# DevSink VictoriaLogs Engine Notes
+# Port: 9428
+# Web UI: http://localhost:9428/select/vmui/
+# HTTP Insert Endpoint: http://localhost:9428/insert/jsonline?_stream_fields=stream
+# Command Line Arguments:
+#   -storageDataPath=./storage
+#   -httpListenAddr=0.0.0.0:9428
+#   -retentionPeriod=30d

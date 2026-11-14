@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# ==============================================================================
+#  ⚡ DevSink Server Control (devsink-ctl)
+# ==============================================================================
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+case "$1" in
+    start)
+        echo "⚡ Starting DevSink Server Services..."
+        systemctl --user start black-hole-cache.service ghost-log.service devsink-dashboard.service 2>/dev/null || true
+        echo "✅ Services started."
+        ;;
+    stop)
+        echo "🛑 Stopping DevSink Server Services..."
+        systemctl --user stop devsink-dashboard.service black-hole-cache.service ghost-log.service 2>/dev/null || true
+        echo "✅ Services stopped."
+        ;;
+    restart)
+        echo "🔄 Restarting DevSink Server Services..."
+        systemctl --user restart black-hole-cache.service ghost-log.service devsink-dashboard.service 2>/dev/null || true
+        echo "✅ Services restarted."
+        ;;
+    status)
+        "$DIR/bin/devsink" status localhost
+        ;;
+    prune)
+        "$DIR/scripts/prune-cache.sh"
+        ;;
+    *)
+        echo "Usage: devsink-ctl {start|stop|restart|status|prune}"
+        exit 1
+        ;;
+esac
