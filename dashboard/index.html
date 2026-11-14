@@ -1,508 +1,762 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sk">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DevSink // LAN Developer Cache & Telemetry Appliance</title>
+  <title>DevSink — High-Speed Developer Cache & Appliance</title>
   <style>
     :root {
-      --bg: #0b0f19;
-      --card-bg: #111827;
-      --card-border: #1f2937;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent-cyan: #06b6d4;
-      --accent-blue: #3b82f6;
-      --accent-green: #10b981;
-      --accent-purple: #8b5cf6;
-      --accent-red: #ef4444;
+      --bg: #090d16;
+      --surface: #0f172a;
+      --surface-hover: #1e293b;
+      --border: #1e293b;
+      --border-focus: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
       background-color: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      min-height: 100vh;
-      padding: 2rem 1.5rem;
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding: 0 1.5rem 4rem 1.5rem;
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 1040px;
       margin: 0 auto;
     }
 
+    /* Navigation Header */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--card-border);
-      flex-wrap: wrap;
+      padding: 1.75rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      border: 1px solid #334155;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
       gap: 1rem;
     }
 
-    .logo-group {
-      display: flex;
+    .status-pill {
+      display: inline-flex;
       align-items: center;
-      gap: 0.8rem;
-    }
-
-    .logo-icon {
-      font-size: 2rem;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    h1 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .tagline {
-      font-size: 0.85rem;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
       color: var(--text-muted);
     }
 
-    .node-badge {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 0.4rem 0.8rem;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-family: var(--font-mono);
-      color: var(--accent-green);
-    }
-
-    .pulse {
+    .status-dot {
       width: 8px;
       height: 8px;
-      background: var(--accent-green);
       border-radius: 50%;
-      box-shadow: 0 0 8px var(--accent-green);
+      background: var(--success);
     }
 
-    /* Metrics Grid */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.2rem;
+    /* Hero Quick Banner */
+    .hero-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
       margin-bottom: 2rem;
     }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      position: relative;
-      overflow: hidden;
+    .hero-banner-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
     }
 
-    .card-title {
+    .hero-banner-desc {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    .inline-code {
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.825rem;
+      color: #93c5fd;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .copy-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text-muted);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+
+    /* Metric Cards Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .metric-label {
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.5rem;
     }
 
-    .card-value {
-      font-size: 1.8rem;
+    .metric-value {
+      font-size: 1.85rem;
       font-weight: 700;
+      letter-spacing: -0.02em;
       font-family: var(--font-mono);
     }
 
-    .card-meta {
+    .metric-sub {
       font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.4rem;
+      color: var(--text-dim);
+      margin-top: 0.35rem;
     }
 
-    .progress-bar {
-      height: 6px;
-      background: #1f2937;
-      border-radius: 3px;
-      margin-top: 0.8rem;
+    .progress-track {
+      height: 4px;
+      background: #1e293b;
+      border-radius: 2px;
+      margin-top: 0.75rem;
       overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      background: var(--primary);
       width: 0%;
-      transition: width 0.4s ease;
+      transition: width 0.3s ease;
     }
 
-    /* Services Grid */
-    .section-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
+    /* Section Headers */
+    .section-header {
+      margin-bottom: 1.25rem;
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      justify-content: space-between;
+      align-items: baseline;
     }
 
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .section-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Services List */
     .services-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1rem;
-      margin-bottom: 2.5rem;
+      margin-bottom: 3rem;
     }
 
-    .service-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
+    .service-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 1.1rem;
+      padding: 1rem 1.25rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s ease;
     }
 
-    .service-card:hover {
-      border-color: #374151;
+    .service-row:hover {
+      border-color: var(--border-focus);
     }
 
-    .service-info h3 {
-      font-size: 1rem;
+    .service-name {
+      font-size: 0.95rem;
       font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
 
     .service-type {
       font-size: 0.75rem;
       color: var(--text-muted);
+    }
+
+    .service-url {
+      font-size: 0.775rem;
+      font-family: var(--font-mono);
+      color: #60a5fa;
       margin-top: 0.2rem;
     }
 
-    .service-endpoint {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--accent-cyan);
-      margin-top: 0.3rem;
-    }
-
-    .status-badge {
+    .badge-online {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
       font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
       font-family: var(--font-mono);
+      color: var(--success);
+      background: var(--success-bg);
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
-    .status-online {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--accent-green);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .status-offline {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--accent-red);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    /* Client Setup Instructions */
-    .setup-box {
-      background: #0d1322;
-      border: 1px solid #1e293b;
+    /* Code Setup Tabs */
+    .config-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1.5rem;
+      margin-bottom: 3.5rem;
     }
 
     .tabs {
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.25rem;
       overflow-x: auto;
     }
 
-    .tab-btn {
+    .tab-item {
       background: none;
       border: none;
       color: var(--text-muted);
       font-size: 0.85rem;
-      font-weight: 600;
-      padding: 0.4rem 0.8rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
       border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
 
-    .tab-btn.active {
-      background: rgba(6, 182, 212, 0.15);
-      color: var(--accent-cyan);
+    .tab-item.active {
+      background: #1e293b;
+      color: var(--text);
     }
 
-    .tab-content {
+    .tab-panel {
       display: none;
     }
 
-    .tab-content.active {
+    .tab-panel.active {
       display: block;
     }
 
-    .code-block {
-      background: #050811;
-      border: 1px solid #172033;
+    .code-box {
+      background: #020617;
+      border: 1px solid #1e293b;
       border-radius: 8px;
-      padding: 1rem;
+      padding: 1rem 1.25rem;
       font-family: var(--font-mono);
       font-size: 0.85rem;
-      color: #38bdf8;
+      color: #93c5fd;
       position: relative;
       overflow-x: auto;
     }
 
-    .copy-btn {
-      position: absolute;
-      top: 0.6rem;
-      right: 0.6rem;
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: var(--text);
-      font-size: 0.75rem;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
+    .code-box pre {
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
-    .copy-btn:hover {
+    .code-copy {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+    }
+
+    /* Pricing Section */
+    .pricing-section {
+      margin-bottom: 4rem;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .pricing-card.featured {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f6;
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1.25rem;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+    }
+
+    .plan-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .plan-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-height: 40px;
+    }
+
+    .plan-price {
+      display: flex;
+      align-items: baseline;
+      gap: 0.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .price-num {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .price-period {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    .plan-features {
+      list-style: none;
+      margin-bottom: 2rem;
+      flex-grow: 1;
+    }
+
+    .plan-features li {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .plan-features li::before {
+      content: "✓";
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      width: 100%;
+      border: 1px solid transparent;
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text);
+      border-color: #334155;
+    }
+
+    .btn-secondary:hover {
       background: #334155;
     }
 
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Footer */
     footer {
-      margin-top: 3rem;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 1rem;
+      font-size: 0.825rem;
+      color: var(--text-dim);
     }
 
     footer a {
-      color: var(--accent-cyan);
+      color: var(--text-muted);
       text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    footer a:hover {
+      color: var(--text);
     }
   </style>
 </head>
 <body>
   <div class="container">
+    
+    <!-- Top Navigation -->
     <header>
-      <div class="logo-group">
-        <div class="logo-icon">⚡</div>
+      <a href="/" class="brand">
+        <div class="brand-logo">⚡</div>
         <div>
-          <h1>DevSink</h1>
-          <div class="tagline">Zero-Config LAN Developer Appliance & Cache Node</div>
+          <div class="brand-title">DevSink</div>
         </div>
-      </div>
-      <div class="node-badge">
-        <div class="pulse"></div>
-        <span id="mdnsHost">vorkei.local</span>
+      </a>
+      <div class="nav-actions">
+        <div class="status-pill">
+          <div class="status-dot"></div>
+          <span id="mdnsHost">vorkei.local</span>
+        </div>
       </div>
     </header>
 
-    <!-- Quick 1-Line Client Setup -->
-    <div style="background: linear-gradient(135deg, rgba(6,182,212,0.1), rgba(59,130,246,0.1)); border: 1px solid rgba(6,182,212,0.3); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem;">
+    <!-- Quick Terminal Install Callout -->
+    <div class="hero-banner">
       <div>
-        <div style="font-weight: 700; font-size: 0.95rem; color: var(--accent-cyan);">🚀 1-Line Mac/Linux Client Switcher:</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Install `devsink` CLI on your MacBook to switch on/off with 1 command.</div>
+        <div class="hero-banner-title">Klientsky CLI prepínač pre macOS a Linux</div>
+        <div class="hero-banner-desc">Nainštaluj si <code>devsink</code> príkaz na svoj MacBook pre prepínanie jedným príkazom.</div>
       </div>
-      <div class="code-block" style="padding: 0.5rem 0.8rem; padding-right: 5rem; margin: 0;">
-        <code>curl -fsSL https://raw.githubusercontent.com/erikbabcan-commits/DevSink/main/client.sh | bash</code>
-        <button class="copy-btn" onclick="copySnippet('curl -fsSL https://raw.githubusercontent.com/erikbabcan-commits/DevSink/main/client.sh | bash')">Copy</button>
+      <div class="inline-code">
+        <span>curl -fsSL https://raw.githubusercontent.com/erikbabcan-commits/DevSink/main/client.sh | bash</span>
+        <button class="copy-btn" onclick="copyText('curl -fsSL https://raw.githubusercontent.com/erikbabcan-commits/DevSink/main/client.sh | bash')">Kopírovať</button>
       </div>
     </div>
 
-    <!-- Metrics -->
+    <!-- Metrics Cards -->
     <div class="metrics-grid">
-      <div class="card">
-        <div class="card-title">SSD Space Saved on Laptop</div>
-        <div class="card-value" id="cacheTotal" style="color: var(--accent-cyan);">--</div>
-        <div class="card-meta" id="cacheBreakdown">Cached packages & images</div>
+      <div class="metric-card">
+        <div class="metric-label">Ušetrené miesto na laptope</div>
+        <div class="metric-value" id="cacheTotal">--</div>
+        <div class="metric-sub" id="cacheBreakdown">NPM, PyPI kolesá a Docker vrstvy</div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Dedicated SSD Free Space</div>
-        <div class="card-value" id="diskFree" style="color: var(--accent-green);">--</div>
-        <div class="card-meta" id="diskUsage">Used: -- / --</div>
-        <div class="progress-bar">
+      <div class="metric-card">
+        <div class="metric-label">Vyhradené SSD úložisko</div>
+        <div class="metric-value" id="diskFree">--</div>
+        <div class="metric-sub" id="diskUsage">Využité: -- z --</div>
+        <div class="progress-track">
           <div class="progress-fill" id="diskBar"></div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Node LAN Host & IP</div>
-        <div class="card-value" id="nodeHost" style="font-size: 1.3rem;">vorkei.local</div>
-        <div class="card-meta" id="nodeIp">Port 3333 // Online</div>
+      <div class="metric-card">
+        <div class="metric-label">Stav LAN uzla</div>
+        <div class="metric-value" id="nodeHost" style="font-size: 1.4rem;">vorkei.local</div>
+        <div class="metric-sub">Port 3333 // Odozva ~1ms</div>
       </div>
     </div>
 
-    <!-- Services -->
-    <div class="section-title">
-      <span>Active LAN Microservices</span>
+    <!-- Microservices Section -->
+    <div class="section-header">
+      <div class="section-title">Aktívne LAN mikroslužby</div>
+      <div class="section-subtitle">Všetky služby bežia lokálne na dedikovanom SSD</div>
     </div>
+    
     <div class="services-grid" id="servicesList">
-      <!-- Populated via JS -->
-      <div style="color: var(--text-muted);">Loading active services...</div>
+      <div style="color: var(--text-dim); font-size: 0.9rem;">Načítavam stav služieb...</div>
     </div>
 
-    <!-- Client Config Snippets -->
-    <div class="setup-box">
-      <div class="section-title" style="margin-bottom: 0.8rem;">
-        <span>Manual Quick-Connect Snippets</span>
+    <!-- Quick Switcher Config -->
+    <div class="config-card">
+      <div class="section-header" style="margin-bottom: 1rem;">
+        <div class="section-title">Rýchle prepojenie vývojárskych nástrojov</div>
       </div>
+      
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('cli')">DevSink CLI</button>
-        <button class="tab-btn" onclick="switchTab('pnpm')">NPM / PNPM</button>
-        <button class="tab-btn" onclick="switchTab('pip')">PIP / UV</button>
-        <button class="tab-btn" onclick="switchTab('docker')">Docker</button>
-        <button class="tab-btn" onclick="switchTab('atuin')">Atuin Shell</button>
+        <button class="tab-item active" onclick="switchTab('cli')">DevSink CLI</button>
+        <button class="tab-item" onclick="switchTab('pnpm')">NPM / PNPM</button>
+        <button class="tab-item" onclick="switchTab('pip')">PIP / UV</button>
+        <button class="tab-item" onclick="switchTab('docker')">Docker Mirror</button>
+        <button class="tab-item" onclick="switchTab('atuin')">Atuin Shell Sync</button>
       </div>
 
-      <div id="tab-cli" class="tab-content active">
-        <div class="code-block">
-<pre># Connect your Mac/Linux laptop to DevSink:
+      <div id="tab-cli" class="tab-panel active">
+        <div class="code-box">
+          <pre># 1. Pripojenie laptopu na LAN SSD uzol:
 devsink on
 
-# Check real-time latency to all 5 services:
+# 2. Kontrola stavu a latencií služieb:
 devsink status
 
-# Disconnect when traveling / leaving home Wi-Fi:
+# 3. Odpojenie pri odchode z domu (kaviareň/mobilný hotspot):
 devsink off</pre>
-          <button class="copy-btn" onclick="copySnippet('devsink on')">Copy devsink on</button>
+          <button class="copy-btn code-copy" onclick="copyText('devsink on')">Kopírovať</button>
         </div>
       </div>
 
-      <div id="tab-pnpm" class="tab-content">
-        <div class="code-block">
-<pre>npm config set registry http://vorkei.local:4873/
+      <div id="tab-pnpm" class="tab-panel">
+        <div class="code-box">
+          <pre>npm config set registry http://vorkei.local:4873/
 pnpm config set registry http://vorkei.local:4873/</pre>
-          <button class="copy-btn" onclick="copySnippet('npm config set registry http://vorkei.local:4873/\npnpm config set registry http://vorkei.local:4873/')">Copy</button>
+          <button class="copy-btn code-copy" onclick="copyText('npm config set registry http://vorkei.local:4873/\npnpm config set registry http://vorkei.local:4873/')">Kopírovať</button>
         </div>
       </div>
 
-      <div id="tab-pip" class="tab-content">
-        <div class="code-block">
-<pre># ~/.config/pip/pip.conf
+      <div id="tab-pip" class="tab-panel">
+        <div class="code-box">
+          <pre># ~/.config/pip/pip.conf
 [global]
 index-url = http://vorkei.local:5050/simple/
 trusted-host = vorkei.local</pre>
-          <button class="copy-btn" onclick="copySnippet('[global]\nindex-url = http://vorkei.local:5050/simple/\ntrusted-host = vorkei.local')">Copy</button>
+          <button class="copy-btn code-copy" onclick="copyText('[global]\nindex-url = http://vorkei.local:5050/simple/\ntrusted-host = vorkei.local')">Kopírovať</button>
         </div>
       </div>
 
-      <div id="tab-docker" class="tab-content">
-        <div class="code-block">
-<pre># Add to /etc/docker/daemon.json or Docker Desktop Engine settings:
+      <div id="tab-docker" class="tab-panel">
+        <div class="code-box">
+          <pre># Vložte do /etc/docker/daemon.json alebo nastavení Docker Desktop:
 {
   "registry-mirrors": ["http://vorkei.local:5000"],
   "insecure-registries": ["vorkei.local:5000"]
 }</pre>
-          <button class="copy-btn" onclick="copySnippet('{\n  &quot;registry-mirrors&quot;: [&quot;http://vorkei.local:5000&quot;],\n  &quot;insecure-registries&quot;: [&quot;vorkei.local:5000&quot;]\n}')">Copy</button>
+          <button class="copy-btn code-copy" onclick="copyText('{\n  &quot;registry-mirrors&quot;: [&quot;http://vorkei.local:5000&quot;],\n  &quot;insecure-registries&quot;: [&quot;vorkei.local:5000&quot;]\n}')">Kopírovať</button>
         </div>
       </div>
 
-      <div id="tab-atuin" class="tab-content">
-        <div class="code-block">
-<pre>atuin config set sync_address http://vorkei.local:8888
+      <div id="tab-atuin" class="tab-panel">
+        <div class="code-box">
+          <pre>atuin config set sync_address http://vorkei.local:8888
 atuin sync</pre>
-          <button class="copy-btn" onclick="copySnippet('atuin config set sync_address http://vorkei.local:8888\natuin sync')">Copy</button>
+          <button class="copy-btn code-copy" onclick="copyText('atuin config set sync_address http://vorkei.local:8888\natuin sync')">Kopírovať</button>
         </div>
       </div>
     </div>
 
+    <!-- Clean Pricing & Pro Activation Section -->
+    <div class="pricing-section" id="pricing">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Licencie & Rozšírenia</div>
+          <div class="section-subtitle">Vyberte si úroveň, ktorá najlepšie vyhovuje vášmu vývoju</div>
+        </div>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Open Source -->
+        <div class="pricing-card">
+          <div class="plan-name">Community</div>
+          <div class="plan-desc">Kompletný open-source základ pre domácu sieť.</div>
+          <div class="plan-price">
+            <span class="price-num">0 €</span>
+            <span class="price-period">/ navždy</span>
+          </div>
+          <ul class="plan-features">
+            <li>Všetkých 5 mikroslužieb (NPM, Docker, PyPI...)</li>
+            <li>Neobmedzená veľkosť lokálnej cache</li>
+            <li>Základný CLI nástroj <code>devsink</code></li>
+            <li>Webová riadiaca stanica (:3333)</li>
+          </ul>
+          <a href="https://github.com/erikbabcan-commits/DevSink" target="_blank" class="btn btn-secondary">Zobraziť na GitHube</a>
+        </div>
+
+        <!-- Pro for Mac -->
+        <div class="pricing-card featured">
+          <div class="plan-badge">Najobľúbenejšie</div>
+          <div class="plan-name">Pro pre macOS</div>
+          <div class="plan-desc">Natívna aplikácia v hornej lište pre macOS bez nutnosti terminálu.</div>
+          <div class="plan-price">
+            <span class="price-num">19 $</span>
+            <span class="price-period">/ jednorazová licencia</span>
+          </div>
+          <ul class="plan-features">
+            <li><strong>Auto Wi-Fi Sensing:</strong> Doma automaticky ON, mimo domu automaticky OFF</li>
+            <li>Žiadne zlyhané buildy pri cestovaní</li>
+            <li>1-kliknutie na vyčistenie lokálnej cache</li>
+            <li>Zobrazenie ušetrených GB priamo v Menu Bare</li>
+            <li>Doživotné aktualizácie</li>
+          </ul>
+          <a href="/api/checkout?plan=pro" class="btn btn-primary">Kúpiť licenciu (19 $)</a>
+        </div>
+
+        <!-- Cloud Tier -->
+        <div class="pricing-card">
+          <div class="plan-name">DevSink Cloud</div>
+          <div class="plan-desc">Spravovaný vzdialený uzol pre vývojárov bez domáceho PC.</div>
+          <div class="plan-price">
+            <span class="price-num">5 $</span>
+            <span class="price-period">/ mesačne</span>
+          </div>
+          <ul class="plan-features">
+            <li>Rýchly európsky 10 Gbps cache uzol</li>
+            <li>Šifrovaný WireGuard / Tailscale tunel</li>
+            <li>Zdieľaná cache pre tímy</li>
+            <li>Nulové nároky na domáci hardvér</li>
+          </ul>
+          <a href="/api/checkout?plan=cloud" class="btn btn-secondary">Aktivovať Cloud (5 $/mes)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
     <footer>
-      <div>DevSink Core v1.0.0 • Open Source Dev Appliance</div>
+      <div>DevSink v1.0.0 • Vyrobené pre vývojárov</div>
       <div>
-        <a href="https://github.com/erikbabcan-commits/DevSink" target="_blank">GitHub Repository</a> • 
+        <a href="https://github.com/erikbabcan-commits/DevSink" target="_blank">GitHub</a> • 
         <a href="http://vorkei.local:9428/select/vmui/" target="_blank">VictoriaLogs UI</a>
       </div>
     </footer>
+
   </div>
 
   <script>
-    async function fetchStats() {
+    async function updateDashboard() {
       try {
         const res = await fetch('/api/stats');
         if (!res.ok) return;
         const data = await res.json();
 
-        // Host & Disk
         document.getElementById('mdnsHost').textContent = data.mdns_host;
         document.getElementById('nodeHost').textContent = data.mdns_host;
         document.getElementById('cacheTotal').textContent = data.cache.total_str;
         document.getElementById('cacheBreakdown').textContent = 
-          `NPM: ${data.cache.npm_str} | PyPI: ${data.cache.pypi_str} | Docker: ${data.cache.docker_str}`;
+          `NPM: ${data.cache.npm_str} • PyPI: ${data.cache.pypi_str} • Docker: ${data.cache.docker_str}`;
 
         document.getElementById('diskFree').textContent = data.disk.free_str;
         document.getElementById('diskUsage').textContent = 
-          `Used: ${data.disk.used_str} of ${data.disk.total_str} (${data.disk.percent_used}%)`;
+          `Využité: ${data.disk.used_str} z ${data.disk.total_str} (${data.disk.percent_used}%)`;
         document.getElementById('diskBar').style.width = data.disk.percent_used + '%';
 
-        // Services
         const list = document.getElementById('servicesList');
         list.innerHTML = '';
         data.services.forEach(s => {
-          const card = document.createElement('div');
-          card.className = 'service-card';
-          const isOnline = s.active;
-          card.innerHTML = `
-            <div class="service-info">
-              <h3>${s.name}</h3>
+          const row = document.createElement('div');
+          row.className = 'service-row';
+          row.innerHTML = `
+            <div>
+              <div class="service-name">${s.name}</div>
               <div class="service-type">${s.type}</div>
-              <div class="service-endpoint">http://${data.mdns_host}:${s.port}</div>
+              <div class="service-url">http://${data.mdns_host}:${s.port}</div>
             </div>
             <div>
-              <span class="status-badge ${isOnline ? 'status-online' : 'status-offline'}">
-                ${isOnline ? `● ACTIVE (${s.latency_ms}ms)` : '○ OFFLINE'}
-              </span>
+              <span class="badge-online">● ${s.active ? s.latency_ms + 'ms' : 'offline'}</span>
             </div>
           `;
-          list.appendChild(card);
+          list.appendChild(row);
         });
-
-      } catch (err) {
-        console.error('Stats fetch error:', err);
+      } catch (e) {
+        console.error('Error fetching stats:', e);
       }
     }
 
-    function switchTab(name) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       event.target.classList.add('active');
-      document.getElementById('tab-' + name).classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
     }
 
-    function copySnippet(text) {
-      navigator.clipboard.writeText(text);
-      alert('Copied to clipboard!');
+    function copyText(str) {
+      navigator.clipboard.writeText(str);
+      alert('Príkaz bol skopírovaný do schránky.');
     }
 
-    fetchStats();
-    setInterval(fetchStats, 3000);
+    updateDashboard();
+    setInterval(updateDashboard, 3000);
   </script>
 </body>
 </html>
