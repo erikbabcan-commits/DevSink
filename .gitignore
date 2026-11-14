@@ -1,0 +1,28 @@
+# DevSink Git Ignore
+
+# Secrets & Environment variables
+.env
+.env.*
+*.env
+*secret*
+*credentials*
+htpasswd
+*.key
+*.pem
+
+# Data and caches
+storage/
+*.db
+*.sqlite
+*.log
+__pycache__/
+*.pyc
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+node_modules/
+dist/
+build/
