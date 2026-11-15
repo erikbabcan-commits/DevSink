@@ -92,28 +92,30 @@ def get_license_by_session(session_id: str):
         }
     return None
 
-def issue_license_for_session(session_id: str):
+def issue_license_for_session(session_id: str, session_data=None):
     # Check if already issued
     existing = get_license_by_session(session_id)
     if existing:
         return existing
 
-    key = get_stripe_key()
-    if not key:
-        return {"error": "Stripe key unavailable for verification"}
+    data = session_data
+    if not data:
+        key = get_stripe_key()
+        if not key:
+            return {"error": "Stripe key unavailable for verification"}
 
-    # Fetch session from Stripe
-    req = urllib.request.Request(f"https://api.stripe.com/v1/checkout/sessions/{session_id}", headers={
-        "Authorization": f"Bearer {key}"
-    })
-    try:
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode())
-    except Exception as e:
-        return {"error": f"Failed to retrieve session from Stripe: {e}"}
+        # Fetch session from Stripe
+        req = urllib.request.Request(f"https://api.stripe.com/v1/checkout/sessions/{session_id}", headers={
+            "Authorization": f"Bearer {key}"
+        })
+        try:
+            with urllib.request.urlopen(req) as resp:
+                data = json.loads(resp.read().decode())
+        except Exception as e:
+            return {"error": f"Failed to retrieve session from Stripe: {e}"}
 
     payment_status = data.get("payment_status")
-    if payment_status != "paid":
+    if payment_status and payment_status != "paid":
         return {"error": f"Payment is not completed (status: {payment_status})"}
 
     customer_details = data.get("customer_details") or {}
@@ -131,11 +133,11 @@ def issue_license_for_session(session_id: str):
     cursor = conn.cursor()
     try:
         cursor.execute("""
-            INSERT INTO licenses (license_key, customer_email, customer_name, stripe_session_id, stripe_payment_intent, plan_type, amount_paid, currency)
+            INSERT OR IGNORE INTO licenses (license_key, customer_email, customer_name, stripe_session_id, stripe_payment_intent, plan_type, amount_paid, currency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (license_key, email, name, session_id, payment_intent, plan_type, amount, currency))
         conn.commit()
-    except sqlite3.IntegrityError:
+    except Exception:
         pass
     conn.close()
 
@@ -249,7 +251,7 @@ class DevSinkHandler(http.server.SimpleHTTPRequestHandler):
                     session_obj = event.get("data", {}).get("object", {})
                     session_id = session_obj.get("id")
                     if session_id:
-                        issue_license_for_session(session_id)
+                        issue_license_for_session(session_id, session_data=session_obj)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
