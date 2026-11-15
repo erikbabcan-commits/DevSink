@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-DevSink Mission Control Web Server & Billing Gateway
-Clean, high-performance developer dashboard and Stripe Checkout integration.
+DevSink Mission Control Web Server, License Engine & Stripe Billing Gateway
+Clean, high-performance developer dashboard, automated license key generator, and Stripe Checkout.
 Runs on port 3333.
 """
 
@@ -10,8 +10,10 @@ import socketserver
 import json
 import os
 import re
+import secrets
 import shutil
 import socket
+import sqlite3
 import subprocess
 import time
 import urllib.parse
@@ -20,6 +22,7 @@ from pathlib import Path
 
 PORT = int(os.environ.get("DEVSINK_PORT", 3333))
 DASHBOARD_DIR = Path(__file__).resolve().parent
+DB_PATH = DASHBOARD_DIR / "licenses.db"
 
 # Locate storage base directory
 DEFAULT_STORAGE = Path(os.environ.get("DEVSINK_STORAGE", "/home/vorkei/black-hole-cache"))
@@ -31,11 +34,9 @@ PRICE_PRO_MAC = "price_1UbnvzKy1aN6O8vmSJc4BDUE"  # $19.00 USD one-time
 PRICE_CLOUD = "price_1UbnvzKy1aN6O8vm9XVu5otk"    # $5.00 USD / month
 
 def get_stripe_key() -> str:
-    # 1. Environment variable
     env_key = os.environ.get("STRIPE_RESTRICTED_KEY") or os.environ.get("STRIPE_SECRET_KEY")
     if env_key:
         return env_key
-    # 2. Local secrets.md (never committed to git)
     secrets_path = Path("/home/vorkei/Documents/secrets.md")
     if secrets_path.exists():
         try:
@@ -46,6 +47,106 @@ def get_stripe_key() -> str:
         except Exception:
             pass
     return ""
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS licenses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            license_key TEXT UNIQUE NOT NULL,
+            customer_email TEXT,
+            customer_name TEXT,
+            stripe_session_id TEXT UNIQUE,
+            stripe_payment_intent TEXT,
+            plan_type TEXT NOT NULL,
+            amount_paid INTEGER,
+            currency TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active INTEGER DEFAULT 1
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def generate_license_key(plan_type="pro") -> str:
+    prefix = "DEVSINK-PRO" if plan_type == "pro" else "DEVSINK-CLOUD"
+    blocks = [secrets.token_hex(2).upper() for _ in range(4)]
+    return f"{prefix}-" + "-".join(blocks)
+
+def get_license_by_session(session_id: str):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT license_key, customer_email, customer_name, plan_type, created_at FROM licenses WHERE stripe_session_id = ?", (session_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return {
+            "license_key": row[0],
+            "customer_email": row[1],
+            "customer_name": row[2],
+            "plan_type": row[3],
+            "created_at": row[4],
+        }
+    return None
+
+def issue_license_for_session(session_id: str):
+    # Check if already issued
+    existing = get_license_by_session(session_id)
+    if existing:
+        return existing
+
+    key = get_stripe_key()
+    if not key:
+        return {"error": "Stripe key unavailable for verification"}
+
+    # Fetch session from Stripe
+    req = urllib.request.Request(f"https://api.stripe.com/v1/checkout/sessions/{session_id}", headers={
+        "Authorization": f"Bearer {key}"
+    })
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception as e:
+        return {"error": f"Failed to retrieve session from Stripe: {e}"}
+
+    payment_status = data.get("payment_status")
+    if payment_status != "paid":
+        return {"error": f"Payment is not completed (status: {payment_status})"}
+
+    customer_details = data.get("customer_details") or {}
+    email = customer_details.get("email") or data.get("customer_email") or "customer@devsink.local"
+    name = customer_details.get("name") or "DevSink Developer"
+    amount = data.get("amount_total") or 1900
+    currency = data.get("currency") or "usd"
+    mode = data.get("mode")
+    plan_type = "cloud" if mode == "subscription" else "pro"
+    payment_intent = data.get("payment_intent") or data.get("subscription") or ""
+
+    license_key = generate_license_key(plan_type)
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO licenses (license_key, customer_email, customer_name, stripe_session_id, stripe_payment_intent, plan_type, amount_paid, currency)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (license_key, email, name, session_id, payment_intent, plan_type, amount, currency))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        pass
+    conn.close()
+
+    return {
+        "license_key": license_key,
+        "customer_email": email,
+        "customer_name": name,
+        "plan_type": plan_type,
+        "amount_paid": amount,
+        "currency": currency
+    }
 
 SERVICES = [
     {"id": "npm", "name": "NPM / Verdaccio", "port": 4873, "path": "/", "type": "Package Cache"},
@@ -115,7 +216,7 @@ def create_checkout_session(plan: str):
         "line_items[0][price]": price_id,
         "line_items[0][quantity]": "1",
         "mode": mode,
-        "success_url": "https://github.com/erikbabcan-commits/DevSink#pro-activation-complete",
+        "success_url": "http://vorkei.local:3333/success.html?session_id={CHECKOUT_SESSION_ID}",
         "cancel_url": "http://vorkei.local:3333/#pricing",
     }
     encoded = urllib.parse.urlencode(data).encode("utf-8")
@@ -135,6 +236,33 @@ def create_checkout_session(plan: str):
 class DevSinkHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(DASHBOARD_DIR), **kwargs)
+
+    def do_POST(self):
+        # Stripe Webhook Endpoint
+        if self.path == "/api/webhook":
+            content_len = int(self.headers.get("Content-Length", 0))
+            post_body = self.rfile.read(content_len)
+            try:
+                event = json.loads(post_body.decode("utf-8"))
+                event_type = event.get("type")
+                if event_type == "checkout.session.completed":
+                    session_obj = event.get("data", {}).get("object", {})
+                    session_id = session_obj.get("id")
+                    if session_id:
+                        issue_license_for_session(session_id)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"status": "received"}')
+                return
+            except Exception as e:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+                return
+
+        return super().do_POST()
 
     def do_GET(self):
         # 1. Stats API
@@ -219,6 +347,27 @@ class DevSinkHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(res).encode("utf-8"))
                 return
 
+        # 3. License Info API for Success Page
+        if self.path.startswith("/api/license-info?"):
+            query = urllib.parse.urlparse(self.path).query
+            params = urllib.parse.parse_qs(query)
+            session_id = params.get("session_id", [""])[0]
+
+            if not session_id:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"error": "session_id required"}')
+                return
+
+            license_data = issue_license_for_session(session_id)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(license_data).encode("utf-8"))
+            return
+
         return super().do_GET()
 
 def run():
@@ -226,7 +375,7 @@ def run():
         allow_reuse_address = True
 
     with ThreadedTCPServer(("0.0.0.0", PORT), DevSinkHandler) as httpd:
-        print(f"⚡ DevSink Mission Control & Billing UI listening on http://0.0.0.0:{PORT}")
+        print(f"⚡ DevSink Mission Control, Billing & Webhook UI listening on http://0.0.0.0:{PORT}")
         httpd.serve_forever()
 
 if __name__ == "__main__":

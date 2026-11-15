@@ -1,0 +1,66 @@
+#!/bin/bash
+# ==============================================================================
+#  ⚡ DevSink Pro for macOS — Background Menu Bar & Wi-Fi Auto-Sensing Engine
+# ==============================================================================
+
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG_DIR="$HOME/.config/devsink"
+LICENSE_FILE="$CONFIG_DIR/license.key"
+LOG_FILE="$CONFIG_DIR/agent.log"
+SERVER_HOST="${DEVSINK_HOST:-vorkei.local}"
+
+mkdir -p "$CONFIG_DIR"
+
+notify() {
+    local title="$1"
+    local msg="$2"
+    osascript -e "display notification \"$msg\" with title \"$title\" sound name \"Pop\"" 2>/dev/null || true
+}
+
+# 1. License Check / Prompt
+if [ ! -f "$LICENSE_FILE" ]; then
+    USER_INPUT=$(osascript -e 'Tell application "System Events" to display dialog "⚡ Vitajte v DevSink Pro!\n\nVložte váš doživotný licenčný kľúč (DEVSINK-PRO-XXXX...):" default answer "" with title "Aktivácia DevSink Pro" with icon note buttons {"Aktivovať", "Zrušiť"} default button "Aktivovať"' 2>/dev/null || echo "")
+    
+    KEY=$(echo "$USER_INPUT" | awk -F'text returned:' '{print $2}' | tr -d ' ')
+    if [[ "$KEY" == DEVSINK-PRO-* ]]; then
+        echo "$KEY" > "$LICENSE_FILE"
+        notify "DevSink Pro" "Licencia bola úspešne aktivovaná!"
+    else
+        notify "DevSink Pro" "Spustené v skúšobnom režime."
+    fi
+fi
+
+# 2. Check devsink CLI tool
+if ! command -v devsink >/dev/null 2>&1; then
+    curl -fsSL "http://${SERVER_HOST}:3333/bin/devsink" -o "$HOME/.local/bin/devsink" 2>/dev/null || \
+    curl -fsSL "https://raw.githubusercontent.com/erikbabcan-commits/DevSink/main/bin/devsink" -o "$HOME/.local/bin/devsink" 2>/dev/null || true
+    chmod +x "$HOME/.local/bin/devsink" 2>/dev/null || true
+fi
+
+notify "⚡ DevSink Pro" "Auto Wi-Fi Sensing je aktívne v pozadí."
+
+# 3. Continuous Background Wi-Fi & LAN Sensing Loop
+CURRENT_STATE="unknown"
+
+while true; do
+    # Probe DevSink appliance port 4873 with 1.5s timeout
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 "http://${SERVER_HOST}:4873/" 2>/dev/null || echo "000")
+
+    if [ "$HTTP_CODE" = "200" ]; then
+        if [ "$CURRENT_STATE" != "connected" ]; then
+            devsink on "$SERVER_HOST" >> "$LOG_FILE" 2>&1 || true
+            notify "⚡ DevSink Pripojené" "LAN Cache je aktívna (1,000 Mbps wire-speed)."
+            CURRENT_STATE="connected"
+        fi
+    else
+        if [ "$CURRENT_STATE" != "disconnected" ]; then
+            devsink off >> "$LOG_FILE" 2>&1 || true
+            notify "⚪ DevSink Odpojené" "Mimo domácej siete: prepnuté na verejné registre."
+            CURRENT_STATE="disconnected"
+        fi
+    fi
+
+    sleep 10
+done

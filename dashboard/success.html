@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aktivácia DevSink Pro — Ďakujeme za nákup</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #0f172a;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 580px;
+      width: 100%;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .check-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--success);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .license-box {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    .license-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .license-key-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .license-key {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #93c5fd;
+      letter-spacing: 0.05em;
+      word-break: break-all;
+    }
+
+    .btn-copy {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .btn-copy:hover {
+      background: #334155;
+    }
+
+    .btn-download {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 2rem;
+      transition: background 0.15s;
+    }
+
+    .btn-download:hover {
+      background: var(--primary-hover);
+    }
+
+    .steps-box {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      text-align: left;
+    }
+
+    .steps-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #1e293b;
+      color: var(--text);
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .back-link {
+      margin-top: 2rem;
+      font-size: 0.825rem;
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="check-icon">✓</div>
+    <h1>Platba bola úspešná!</h1>
+    <p class="subtitle">Ďakujeme za podporu DevSink. Váš licenčný kľúč je aktívny.</p>
+
+    <div class="license-box">
+      <div class="license-label">Váš doživotný licenčný kľúč:</div>
+      <div class="license-key-wrapper">
+        <span class="license-key" id="licenseDisplay">Načítavam kľúč...</span>
+        <button class="btn-copy" onclick="copyLicense()">Kopírovať</button>
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.6rem;" id="customerEmail"></div>
+    </div>
+
+    <a href="/downloads/DevSink-Pro-macOS.zip" class="btn-download" id="downloadBtn">
+      <span> Stiahnuť DevSink Pro pre macOS (.zip)</span>
+    </a>
+
+    <div class="steps-box">
+      <div class="steps-title">Rýchly postup aktivácie:</div>
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div>Rozbaľte stiahnutý súbor a presuňte <strong>DevSink.app</strong> do priečinka <code>/Applications</code> na Macu.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div>Po spustení vložte váš licenčný kľúč zobrazený vyššie.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div>Aplikácia v hornej lište (Menu Bar) automaticky sníma vašu domácu sieť a zapína cache s nulovým zdržaním.</div>
+      </div>
+    </div>
+
+    <a href="/" class="back-link">← Návrat na riadiaci dashboard</a>
+  </div>
+
+  <script>
+    async function loadLicense() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      if (!sessionId) {
+        document.getElementById('licenseDisplay').textContent = 'DEVSINK-PRO-DEMO-2026';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/license-info?session_id=' + encodeURIComponent(sessionId));
+        const data = await res.json();
+        if (data.license_key) {
+          document.getElementById('licenseDisplay').textContent = data.license_key;
+          if (data.customer_email) {
+            document.getElementById('customerEmail').textContent = 'Viazané na: ' + data.customer_email;
+          }
+        } else if (data.error) {
+          document.getElementById('licenseDisplay').textContent = 'Overovanie platby...';
+          setTimeout(loadLicense, 2000);
+        }
+      } catch (err) {
+        console.error('Error loading license:', err);
+      }
+    }
+
+    function copyLicense() {
+      const key = document.getElementById('licenseDisplay').textContent;
+      navigator.clipboard.writeText(key);
+      alert('Licenčný kľúč bol skopírovaný!');
+    }
+
+    loadLicense();
+  </script>
+</body>
+</html>
